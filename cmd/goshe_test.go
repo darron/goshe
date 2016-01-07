@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"runtime"
 	"testing"
 )
 
@@ -21,12 +20,9 @@ func TestConvertProcessList(t *testing.T) {
 }
 
 func TestMatchProcessList(t *testing.T) {
-	match := "getty"
+	match := "go"
 	pids := GetPIDs()
 	processes := ConvertProcessList(pids)
-	if runtime.GOOS == "darwin" {
-		match = "pboard"
-	}
 	matches := MatchProcessList(*processes, match)
 	if matches == nil {
 		t.Error("Got nill matches")
@@ -41,10 +37,7 @@ func TestGetProcessList(t *testing.T) {
 }
 
 func TestGetMatches(t *testing.T) {
-	match := "getty"
-	if runtime.GOOS == "darwin" {
-		match = "pboard"
-	}
+	match := "go"
 	matches := GetMatches(match)
 	if matches == nil {
 		t.Error("Got no matches.")

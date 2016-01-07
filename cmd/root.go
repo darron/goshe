@@ -11,8 +11,8 @@ import (
 // https://github.com/spf13/cobra
 var RootCmd = &cobra.Command{
 	Use:   "goshe",
-	Short: "Additional Apache memory stats to datadog.",
-	Long:  `Additional Apache memory stats to datadog.`,
+	Short: "Additional stats to datadog.",
+	Long:  `Additional stats to datadog.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("`goshe -h` for help information.")
 		fmt.Println("`goshe -v` for version information.")

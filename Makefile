@@ -10,6 +10,7 @@ deps:
 	go get -u github.com/spf13/viper
 	go get -u github.com/progrium/basht
 	go get -u github.com/cloudfoundry/gosigar
+	go get -u github.com/davecgh/go-spew/spew
 
 format:
 	gofmt -w .

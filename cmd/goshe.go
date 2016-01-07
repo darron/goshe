@@ -18,6 +18,7 @@ type ProcessList struct {
 func GetMatches(match string) []ProcessList {
 	var Matches []ProcessList
 	processes := GetProcessList()
+	// spew.Dump(processes)
 	Matches = MatchProcessList(*processes, match)
 	return Matches
 }

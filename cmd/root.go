@@ -25,9 +25,13 @@ var (
 
 	// Verbose logs all output to stdout.
 	Verbose bool
+
+	// ProcessName is the process to match.
+	ProcessName string
 )
 
 func init() {
 	Direction = SetDirection()
 	RootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "", false, "log output to stdout")
+	RootCmd.PersistentFlags().StringVarP(&ProcessName, "process", "p", "", "Process name to match.")
 }

@@ -1,0 +1,3 @@
+#!/bin/bash
+GOSHE_VERSION="0.1-dev"
+echo $GOSHE_VERSION

@@ -5,6 +5,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
+	"strings"
 )
 
 var apacheCmd = &cobra.Command{
@@ -40,7 +41,8 @@ func init() {
 // SendApacheRSSMetrics sends metrics to Dogstatsd.
 func SendApacheRSSMetrics(p []ProcessList) bool {
 	var err error
-	metricName := fmt.Sprintf("%s.rss_memory", ProcessName)
+	processName := strings.ToLower(strings.Replace(ProcessName, " ", "_", -1))
+	metricName := fmt.Sprintf("%s.rss_memory", processName)
 	dog := DogConnect()
 	for _, proc := range p {
 		err = dog.Histogram(metricName, float64(proc.Pmem), dog.Tags, 1)

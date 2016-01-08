@@ -15,7 +15,6 @@ const (
 // DogConnect sets up a connection and sets standard tags.
 func DogConnect() *statsd.Client {
 	connection := DogStatsdSetup()
-	connection = DogStatsdTags(connection)
 	return connection
 }
 
@@ -27,10 +26,4 @@ func DogStatsdSetup() *statsd.Client {
 	}
 	c.Namespace = fmt.Sprintf("%s.", MetricPrefix)
 	return c
-}
-
-// DogStatsdTags adds standard tags to the statsd pointer.
-func DogStatsdTags(s *statsd.Client) *statsd.Client {
-	s.Tags = append(s.Tags, GetHostname())
-	return s
 }

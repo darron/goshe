@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"strings"
+	"time"
 )
 
 var apacheCmd = &cobra.Command{
@@ -19,12 +20,15 @@ var apacheCmd = &cobra.Command{
 }
 
 func startApache(cmd *cobra.Command, args []string) {
-	matches := GetMatches(ProcessName)
-	if matches != nil {
-		fmt.Printf("Found %d matches.\n", len(matches))
-		SendApacheRSSMetrics(matches)
-	} else {
-		fmt.Printf("Did not find any matches.\n")
+	for {
+		matches := GetMatches(ProcessName)
+		if matches != nil {
+			fmt.Printf("Found %d matches.\n", len(matches))
+			SendApacheRSSMetrics(matches)
+		} else {
+			fmt.Printf("Did not find any matches.\n")
+		}
+		time.Sleep(time.Duration(Interval) * time.Second)
 	}
 }
 

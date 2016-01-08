@@ -31,6 +31,9 @@ var (
 
 	// MetricPrefix prefixes all metrics emitted.
 	MetricPrefix string
+
+	// Interval is the amount of seconds to loop.
+	Interval int
 )
 
 func init() {
@@ -38,4 +41,5 @@ func init() {
 	RootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "", false, "log output to stdout")
 	RootCmd.PersistentFlags().StringVarP(&ProcessName, "process", "p", "", "Process name to match.")
 	RootCmd.PersistentFlags().StringVarP(&MetricPrefix, "prefix", "", "goshe", "Metric prefix.")
+	RootCmd.PersistentFlags().IntVarP(&Interval, "interval", "i", 5, "Interval when running in a loop.")
 }

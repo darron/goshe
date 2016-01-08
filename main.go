@@ -8,7 +8,9 @@ import (
 	"log"
 	"log/syslog"
 	"os"
+	"os/signal"
 	"runtime"
+	"syscall"
 )
 
 // CompileDate tracks when the binary was compiled. It's inserted during a build
@@ -43,7 +45,19 @@ func main() {
 			os.Exit(0)
 		}
 	}
+	// Setup nice shutdown with CTRL-C.
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	go handleCtrlC(c)
 
-	runtime.GOMAXPROCS(runtime.NumCPU())
 	cmd.RootCmd.Execute()
+}
+
+// Any cleanup tasks on shutdown could happen here.
+func handleCtrlC(c chan os.Signal) {
+	sig := <-c
+	message := fmt.Sprintf("Received '%s' - shutting down.", sig)
+	cmd.Log(message, "info")
+	fmt.Printf("%s\n", message)
+	os.Exit(0)
 }

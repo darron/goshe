@@ -36,6 +36,7 @@ func checkApacheFlags() {
 	if ProcessName == "" {
 		ProcessName = "apache2"
 	}
+	fmt.Println("Press CTRL-C to shutdown.")
 }
 
 func init() {

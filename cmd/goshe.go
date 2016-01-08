@@ -11,7 +11,7 @@ import (
 type ProcessList struct {
 	Pname string
 	Pid   int
-	Pmem  uint64
+	Pmem  uint64 // in K
 }
 
 // GetMatches returns only the matches we want from running processes.
@@ -50,7 +50,7 @@ func ConvertProcessList(p *sigar.ProcList) *[]ProcessList {
 		if err := mem.Get(pid); err != nil {
 			continue
 		}
-		proc = ProcessList{Pname: state.Name, Pid: pid, Pmem: mem.Resident}
+		proc = ProcessList{Pname: state.Name, Pid: pid, Pmem: mem.Resident / 1024}
 		List = append(List, proc)
 	}
 	return &List

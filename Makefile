@@ -11,6 +11,7 @@ deps:
 	go get -u github.com/progrium/basht
 	go get -u github.com/cloudfoundry/gosigar
 	go get -u github.com/davecgh/go-spew/spew
+	go get -u github.com/DataDog/datadog-go/statsd
 
 format:
 	gofmt -w .

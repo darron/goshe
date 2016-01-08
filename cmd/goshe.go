@@ -60,7 +60,7 @@ func ConvertProcessList(p *sigar.ProcList) *[]ProcessList {
 func MatchProcessList(procs []ProcessList, match string) []ProcessList {
 	var Matches []ProcessList
 	for _, proc := range procs {
-		if proc.Pname == match {
+		if proc.Pname == match || proc.Pname == "goshe" {
 			Matches = append(Matches, proc)
 		}
 	}

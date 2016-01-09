@@ -3,8 +3,10 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/cloudfoundry/gosigar"
 	_ "github.com/davecgh/go-spew/spew" // I want to use this sometimes.
+	"strings"
 )
 
 // ProcessList is a simplified list of processes on a system.
@@ -12,6 +14,8 @@ type ProcessList struct {
 	Pname string
 	Pid   int
 	Pmem  uint64 // in K
+	Puser uint64
+	Psys  uint64
 }
 
 // GetMatches returns only the matches we want from running processes.
@@ -44,13 +48,17 @@ func ConvertProcessList(p *sigar.ProcList) *[]ProcessList {
 	for _, pid := range p.List {
 		state := sigar.ProcState{}
 		mem := sigar.ProcMem{}
+		time := sigar.ProcTime{}
 		if err := state.Get(pid); err != nil {
 			continue
 		}
 		if err := mem.Get(pid); err != nil {
 			continue
 		}
-		proc = ProcessList{Pname: state.Name, Pid: pid, Pmem: mem.Resident / 1024}
+		if err := time.Get(pid); err != nil {
+			continue
+		}
+		proc = ProcessList{Pname: state.Name, Pid: pid, Pmem: mem.Resident / 1024, Puser: time.User, Psys: time.Sys}
 		List = append(List, proc)
 	}
 	return &List
@@ -65,4 +73,20 @@ func MatchProcessList(procs []ProcessList, match string) []ProcessList {
 		}
 	}
 	return Matches
+}
+
+// SendMetrics sends memory metrics to Dogstatsd.
+func SendMetrics(p []ProcessList) bool {
+	var err error
+	dog := DogConnect()
+	for _, proc := range p {
+		processName := strings.ToLower(strings.Replace(proc.Pname, " ", "_", -1))
+		metricName := fmt.Sprintf("%s.rss_memory", processName)
+		err = dog.Histogram(metricName, float64(proc.Pmem), dog.Tags, 1)
+		if err != nil {
+			Log(fmt.Sprintf("Error sending rss_memory stats for '%s'", processName), "info")
+			return false
+		}
+	}
+	return true
 }

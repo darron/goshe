@@ -43,3 +43,15 @@ func TestGetMatches(t *testing.T) {
 		t.Error("Got no matches.")
 	}
 }
+
+func TestSendMetrics(t *testing.T) {
+	matches := GetMatches("go")
+	if matches != nil {
+		result := SendMetrics(matches)
+		if !result {
+			t.Error("Did not send Go RSS Metrics.")
+		}
+	} else {
+		t.Error("Didn't find any matches.")
+	}
+}

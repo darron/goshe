@@ -12,6 +12,7 @@ deps:
 	go get -u github.com/cloudfoundry/gosigar
 	go get -u github.com/davecgh/go-spew/spew
 	go get -u github.com/DataDog/datadog-go/statsd
+	go get -u github.com/tatsushid/go-fastping
 
 format:
 	gofmt -w .

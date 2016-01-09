@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"os"
+	"os/user"
 	"strings"
 	"time"
 )
@@ -54,6 +55,14 @@ func Log(message, priority string) {
 func GetHostname() string {
 	hostname, _ := os.Hostname()
 	return hostname
+}
+
+// GetCurrentUsername grabs the current user running the binary.
+func GetCurrentUsername() string {
+	usr, _ := user.Current()
+	username := usr.Username
+	Log(fmt.Sprintf("username='%s'", username), "debug")
+	return username
 }
 
 // LoadConfig loads the configuration from a config file.

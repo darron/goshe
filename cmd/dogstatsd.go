@@ -5,6 +5,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/DataDog/datadog-go/statsd"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -20,7 +21,12 @@ func DogConnect() *statsd.Client {
 
 // DogStatsdSetup sets up a connection to DogStatsd.
 func DogStatsdSetup() *statsd.Client {
-	c, err := statsd.New(DogStatsdAddr)
+	dogstatsd := ""
+	if dogstatsd = viper.GetString("dogtstatsd_address"); dogstatsd == "" {
+		dogstatsd = DogStatsdAddr
+	}
+	Log(dogstatsd, "info")
+	c, err := statsd.New(dogstatsd)
 	if err != nil {
 		Log(fmt.Sprintf("DogStatsdSetup Error: %#v", err), "info")
 	}

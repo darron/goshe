@@ -38,6 +38,7 @@ var (
 
 func init() {
 	Direction = SetDirection()
+	LoadConfig()
 	RootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "", false, "log output to stdout")
 	RootCmd.PersistentFlags().StringVarP(&ProcessName, "process", "p", "", "Process name to match.")
 	RootCmd.PersistentFlags().StringVarP(&MetricPrefix, "prefix", "", "goshe", "Metric prefix.")

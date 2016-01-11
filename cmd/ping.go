@@ -49,7 +49,7 @@ var (
 )
 
 func init() {
-	RootCmd.PersistentFlags().StringVarP(&Endpoint, "endpoint", "e", "www.google.com", "Endpoint to ping.")
+	pingCmd.Flags().StringVarP(&Endpoint, "endpoint", "e", "www.google.com", "Endpoint to ping.")
 	RootCmd.AddCommand(pingCmd)
 }
 

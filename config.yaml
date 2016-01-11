@@ -1,2 +1,3 @@
 ---
 # dogtstatsd_address: 127.0.0.1:8125
+apache_status: http://127.0.0.1:8181/server-status

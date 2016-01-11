@@ -36,3 +36,77 @@ func TestParseServerStats(t *testing.T) {
 		t.Error("That's bad - we should see 9 Apache structs.")
 	}
 }
+
+func createTestProcessList() []ProcessList {
+	var procs []ProcessList
+	var proc ProcessList
+	proc = ProcessList{Pname: "apache2", Pid: 10434, Pmem: 10520, Puser: 90, Psys: 64}
+	procs = append(procs, proc)
+	proc = ProcessList{Pname: "apache2", Pid: 10360, Pmem: 20520, Puser: 90, Psys: 64}
+	procs = append(procs, proc)
+	proc = ProcessList{Pname: "apache2", Pid: 10282, Pmem: 30520, Puser: 90, Psys: 64}
+	procs = append(procs, proc)
+	proc = ProcessList{Pname: "apache2", Pid: 10345, Pmem: 15520, Puser: 90, Psys: 64}
+	procs = append(procs, proc)
+	proc = ProcessList{Pname: "apache2", Pid: 10475, Pmem: 25520, Puser: 90, Psys: 64}
+	procs = append(procs, proc)
+	return procs
+}
+
+func TestCreateProcessMemMap(t *testing.T) {
+	procs := createTestProcessList()
+	processMap := createProcessMemMap(procs)
+	if processMap[10434] != uint64(10520) {
+		t.Error("That's incorrect - it should be uint64(10520).")
+	}
+}
+
+func createTestApacheList() []ApacheProcess {
+	var stats []ApacheProcess
+	var apache ApacheProcess
+	apache = ApacheProcess{Pid: 10434, Vhost: "andy.bam.nonwebdev.com"}
+	stats = append(stats, apache)
+	apache = ApacheProcess{Pid: 10360, Vhost: "jon.bam.nonwebdev.com"}
+	stats = append(stats, apache)
+	apache = ApacheProcess{Pid: 10282, Vhost: "darron.bam.nonwebdev.com"}
+	stats = append(stats, apache)
+	apache = ApacheProcess{Pid: 10345, Vhost: "darron.bam.nonwebdev.com"}
+	stats = append(stats, apache)
+	apache = ApacheProcess{Pid: 10475, Vhost: "robb.bam.nonwebdev.com"}
+	stats = append(stats, apache)
+	return stats
+}
+
+// Testing to see if the stats get sent.
+func TestSendApacheServerStats(t *testing.T) {
+	procs := createTestProcessList()
+	if len(procs) != 5 {
+		t.Error("That's a problem - there should be 5 processes.")
+	}
+	apaches := createTestApacheList()
+	if len(apaches) != 5 {
+		t.Error("That's a problem - there should be 5 Apaches.")
+	}
+	procMap := createProcessMemMap(procs)
+	SendApacheServerStats(apaches, procMap)
+}
+
+// Adding an extra Apache process without corresponding memory info.
+func TestSendApacheServerStatsWithExtraApache(t *testing.T) {
+	procs := createTestProcessList()
+	apaches := createTestApacheList()
+	apache := ApacheProcess{Pid: 10800, Vhost: "wildcard.bam.nonwebdev.com"}
+	apaches = append(apaches, apache)
+	procMap := createProcessMemMap(procs)
+	SendApacheServerStats(apaches, procMap)
+}
+
+// Adding an extra Process without a matching Apache process.
+func TestSendApacheServerStatsWithExtraProcess(t *testing.T) {
+	procs := createTestProcessList()
+	proc := ProcessList{Pname: "apache2", Pid: 16475, Pmem: 255520, Puser: 90, Psys: 64}
+	procs = append(procs, proc)
+	apaches := createTestApacheList()
+	procMap := createProcessMemMap(procs)
+	SendApacheServerStats(apaches, procMap)
+}

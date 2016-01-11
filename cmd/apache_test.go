@@ -32,7 +32,7 @@ func TestParseServerStats(t *testing.T) {
 	serverStatus := getServerStatus(url)
 	stringResults := parseServerStatus(serverStatus)
 	ApacheProcesses := parseProcessStats(stringResults)
-	if len(ApacheProcesses) != 16 {
-		t.Error("That's bad - we should see 16 Apache structs.")
+	if len(ApacheProcesses) != 9 {
+		t.Error("That's bad - we should see 9 Apache structs.")
 	}
 }

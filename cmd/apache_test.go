@@ -12,7 +12,7 @@ func TestGetServerStatus(t *testing.T) {
 	url := fmt.Sprintf("%s/index.html", ts.URL)
 	serverStatus := getServerStatus(url)
 	if serverStatus == nil {
-		t.Error("That's not good!")
+		t.Error("That's not good! Not getting html.Nodes back.")
 	}
 }
 
@@ -20,12 +20,9 @@ func TestParseServerStatus(t *testing.T) {
 	ts := httptest.NewServer(http.FileServer(http.Dir("../test/http")))
 	url := fmt.Sprintf("%s/index.html", ts.URL)
 	serverStatus := getServerStatus(url)
-	if serverStatus == nil {
-		t.Error("That's not good!")
-	}
 	stringResults := parseServerStatus(serverStatus)
-	if stringResults == nil {
-		t.Error("There are no results.")
+	if len(stringResults) != 64 {
+		t.Error("We're not getting the right number of strings back. Should be 64.")
 	}
 }
 
@@ -35,7 +32,7 @@ func TestParseServerStats(t *testing.T) {
 	serverStatus := getServerStatus(url)
 	stringResults := parseServerStatus(serverStatus)
 	ApacheProcesses := parseProcessStats(stringResults)
-	if ApacheProcesses == nil {
-		t.Error("No process data - that's bad.")
+	if len(ApacheProcesses) != 16 {
+		t.Error("That's bad - we should see 16 Apache structs.")
 	}
 }

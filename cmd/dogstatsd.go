@@ -25,7 +25,6 @@ func DogStatsdSetup() *statsd.Client {
 	if dogstatsd = viper.GetString("dogtstatsd_address"); dogstatsd == "" {
 		dogstatsd = DogStatsdAddr
 	}
-	Log(dogstatsd, "info")
 	c, err := statsd.New(dogstatsd)
 	if err != nil {
 		Log(fmt.Sprintf("DogStatsdSetup Error: %#v", err), "info")

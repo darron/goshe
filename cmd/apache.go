@@ -73,7 +73,7 @@ func SendApacheServerStats(apache []ApacheProcess, procs map[int]uint64) {
 		pid := int(server.Pid)
 		memory := procs[pid]
 		if memory > 0 {
-			Log(fmt.Sprintf("sending memory='%b' vhost='%s'", float64(memory), server.Vhost), "debug")
+			Log(fmt.Sprintf("sending memory='%f' vhost='%s'", float64(memory), server.Vhost), "debug")
 			dog.Tags = append(dog.Tags, fmt.Sprintf("site:%s", server.Vhost))
 			err = dog.Histogram("apache2.rss_memory_tagged", float64(memory), dog.Tags, 1)
 			if err != nil {

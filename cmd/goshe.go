@@ -13,7 +13,7 @@ import (
 type ProcessList struct {
 	Pname string
 	Pid   int
-	Pmem  uint64 // in K
+	Pmem  uint64 // in bytes
 }
 
 // GetMatches returns only the matches we want from running processes.

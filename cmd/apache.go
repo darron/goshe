@@ -142,7 +142,7 @@ func parseProcessStats(processes []string) []ApacheProcess {
 		fields := strings.SplitAfterN(process, " ", -1)
 		pid := strings.TrimSpace(fields[1])
 		vhost := strings.TrimSpace(fields[11])
-		if pid != "-" && !strings.HasPrefix(vhost, "*") {
+		if pid != "-" && !strings.HasPrefix(vhost, "*") && vhost != "?" {
 			pidInt, _ := strconv.ParseInt(pid, 10, 64)
 			apache = ApacheProcess{Pid: pidInt, Vhost: vhost}
 			stats = append(stats, apache)

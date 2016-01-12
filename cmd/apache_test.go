@@ -40,15 +40,15 @@ func TestParseServerStats(t *testing.T) {
 func createTestProcessList() []ProcessList {
 	var procs []ProcessList
 	var proc ProcessList
-	proc = ProcessList{Pname: "apache2", Pid: 10434, Pmem: 10520, Puser: 90, Psys: 64}
+	proc = ProcessList{Pname: "apache2", Pid: 10434, Pmem: 10520}
 	procs = append(procs, proc)
-	proc = ProcessList{Pname: "apache2", Pid: 10360, Pmem: 20520, Puser: 90, Psys: 64}
+	proc = ProcessList{Pname: "apache2", Pid: 10360, Pmem: 20520}
 	procs = append(procs, proc)
-	proc = ProcessList{Pname: "apache2", Pid: 10282, Pmem: 30520, Puser: 90, Psys: 64}
+	proc = ProcessList{Pname: "apache2", Pid: 10282, Pmem: 30520}
 	procs = append(procs, proc)
-	proc = ProcessList{Pname: "apache2", Pid: 10345, Pmem: 15520, Puser: 90, Psys: 64}
+	proc = ProcessList{Pname: "apache2", Pid: 10345, Pmem: 15520}
 	procs = append(procs, proc)
-	proc = ProcessList{Pname: "apache2", Pid: 10475, Pmem: 25520, Puser: 90, Psys: 64}
+	proc = ProcessList{Pname: "apache2", Pid: 10475, Pmem: 25520}
 	procs = append(procs, proc)
 	return procs
 }
@@ -104,7 +104,7 @@ func TestSendApacheServerStatsWithExtraApache(t *testing.T) {
 // Adding an extra Process without a matching Apache process.
 func TestSendApacheServerStatsWithExtraProcess(t *testing.T) {
 	procs := createTestProcessList()
-	proc := ProcessList{Pname: "apache2", Pid: 16475, Pmem: 255520, Puser: 90, Psys: 64}
+	proc := ProcessList{Pname: "apache2", Pid: 16475, Pmem: 255520}
 	procs = append(procs, proc)
 	apaches := createTestApacheList()
 	procMap := createProcessMemMap(procs)

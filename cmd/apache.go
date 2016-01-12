@@ -69,9 +69,11 @@ func SendApacheServerStats(apache []ApacheProcess, procs map[int]uint64) {
 	var err error
 	dog := DogConnect()
 	for _, server := range apache {
+		Log(fmt.Sprintf("SendApacheServerStats server='%#v'", server), "debug")
 		pid := int(server.Pid)
 		memory := procs[pid]
 		if memory > 0 {
+			Log(fmt.Sprintf("sending memory='%b' vhost='%s'", float64(memory), server.Vhost), "debug")
 			dog.Tags = append(dog.Tags, fmt.Sprintf("site:%s", server.Vhost))
 			err = dog.Histogram("apache2.rss_memory_tagged", float64(memory), dog.Tags, 1)
 			if err != nil {
@@ -128,6 +130,7 @@ func parseServerStatus(root *html.Node) []string {
 			apacheStats = append(apacheStats, content)
 		}
 	}
+	Log(fmt.Sprintf("parseServerStatus apacheStats='%d'", len(apacheStats)), "debug")
 	return apacheStats
 }
 
@@ -145,6 +148,7 @@ func parseProcessStats(processes []string) []ApacheProcess {
 			stats = append(stats, apache)
 		}
 	}
+	Log(fmt.Sprintf("parseProcessStats stats='%d'", len(stats)), "debug")
 	return stats
 }
 

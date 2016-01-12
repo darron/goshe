@@ -14,8 +14,6 @@ type ProcessList struct {
 	Pname string
 	Pid   int
 	Pmem  uint64 // in K
-	Puser uint64
-	Psys  uint64
 }
 
 // GetMatches returns only the matches we want from running processes.
@@ -46,6 +44,7 @@ func ConvertProcessList(p *sigar.ProcList) *[]ProcessList {
 	var List []ProcessList
 	var proc ProcessList
 	for _, pid := range p.List {
+		var memory uint64
 		state := sigar.ProcState{}
 		mem := sigar.ProcMem{}
 		time := sigar.ProcTime{}
@@ -58,7 +57,8 @@ func ConvertProcessList(p *sigar.ProcList) *[]ProcessList {
 		if err := time.Get(pid); err != nil {
 			continue
 		}
-		proc = ProcessList{Pname: state.Name, Pid: pid, Pmem: mem.Resident / 1024, Puser: time.User, Psys: time.Sys}
+		memory = mem.Resident / 1024
+		proc = ProcessList{Pname: state.Name, Pid: pid, Pmem: memory}
 		List = append(List, proc)
 	}
 	return &List
@@ -82,6 +82,7 @@ func SendMetrics(p []ProcessList) bool {
 	for _, proc := range p {
 		processName := strings.ToLower(strings.Replace(proc.Pname, " ", "_", -1))
 		metricName := fmt.Sprintf("%s.rss_memory", processName)
+		Log(fmt.Sprintf("SendMetrics process='%#v' processName='%s' metricName='%s' memory='%b'", proc, processName, metricName, float64(proc.Pmem)), "debug")
 		err = dog.Histogram(metricName, float64(proc.Pmem), dog.Tags, 1)
 		if err != nil {
 			Log(fmt.Sprintf("Error sending rss_memory stats for '%s'", processName), "info")

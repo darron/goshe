@@ -158,6 +158,7 @@ func createProcessMemMap(p []ProcessList) map[int]uint64 {
 	for _, proc := range p {
 		pid := proc.Pid
 		mem := proc.Pmem
+		Log(fmt.Sprintf("pid='%d' mem='%d'", pid, mem), "debug")
 		m[pid] = mem
 	}
 	return m

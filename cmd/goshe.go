@@ -57,7 +57,7 @@ func ConvertProcessList(p *sigar.ProcList) *[]ProcessList {
 		if err := time.Get(pid); err != nil {
 			continue
 		}
-		memory = mem.Resident / 1024
+		memory = mem.Resident
 		proc = ProcessList{Pname: state.Name, Pid: pid, Pmem: memory}
 		List = append(List, proc)
 	}

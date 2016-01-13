@@ -18,6 +18,7 @@ import (
 
 const (
 	modStatus = "http://127.0.0.1/server-status/"
+	minMemory = 10 * 1024 * 1024 // Skip logging Apache processes with less than this memory used: 10MB by default.
 )
 
 // ApacheProcess holds the interesting pieces of Apache stats.
@@ -60,7 +61,13 @@ func checkApacheFlags() {
 	fmt.Println("Press CTRL-C to shutdown.")
 }
 
+var (
+	// MinimumMemory is the minimum size of an Apache process that we log stats for.
+	MinimumMemory uint64
+)
+
 func init() {
+	apacheCmd.Flags().Uint64VarP(&MinimumMemory, "memory", "m", minMemory, "Smallest Apache memory size to log.")
 	RootCmd.AddCommand(apacheCmd)
 }
 
@@ -72,7 +79,7 @@ func SendApacheServerStats(apache []ApacheProcess, procs map[int]uint64) {
 		Log(fmt.Sprintf("SendApacheServerStats server='%#v'", server), "debug")
 		pid := int(server.Pid)
 		memory := procs[pid]
-		if memory > 0 {
+		if memory > MinimumMemory {
 			Log(fmt.Sprintf("sending memory='%f' vhost='%s'", float64(memory), server.Vhost), "debug")
 			dog.Tags = append(dog.Tags, fmt.Sprintf("site:%s", server.Vhost))
 			err = dog.Histogram("apache2.rss_memory_tagged", float64(memory), dog.Tags, 1)

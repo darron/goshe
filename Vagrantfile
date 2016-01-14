@@ -5,8 +5,8 @@ Vagrant.configure(2) do |config|
   config.vm.box = "ubuntu/trusty64"
 
   config.vm.provision "shell", inline: <<-SHELL
-    curl -sf -o /tmp/go1.5.2.linux-amd64.tar.gz -L https://storage.googleapis.com/golang/go1.5.2.linux-amd64.tar.gz
-    sudo mkdir -p /opt && cd /opt && sudo tar xfz /tmp/go1.5.2.linux-amd64.tar.gz && rm -f /tmp/go1.5.2.linux-amd64.tar.gz
+    curl -sf -o /tmp/go1.5.3.linux-amd64.tar.gz -L https://storage.googleapis.com/golang/go1.5.3.linux-amd64.tar.gz
+    sudo mkdir -p /opt && cd /opt && sudo tar xfz /tmp/go1.5.3.linux-amd64.tar.gz && rm -f /tmp/go1.5.3.linux-amd64.tar.gz
     sudo apt-get install -y git make graphviz
     sudo cat > /etc/profile.d/go.sh << EOF
 export GOROOT="/opt/go"

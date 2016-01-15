@@ -4,6 +4,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/hpcloud/tail"
 	"github.com/spf13/viper"
 	"log"
 	"os"
@@ -77,4 +78,15 @@ func LoadConfig() {
 		Log(fmt.Sprintf("No config file found: %s \n", err), "info")
 	}
 	viper.SetEnvPrefix("GOSHE")
+}
+
+// OpenLogfile opens a logfile and passes back a *tail.Tail pointer.
+func OpenLogfile(logfile string) *tail.Tail {
+	t, err := tail.TailFile(logfile, tail.Config{
+		ReOpen: true,
+		Follow: true})
+	if err != nil {
+		Log("There was an error opening the file.", "info")
+	}
+	return t
 }

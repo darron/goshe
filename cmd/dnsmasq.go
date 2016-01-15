@@ -5,7 +5,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/DataDog/datadog-go/statsd"
-	"github.com/hpcloud/tail"
 	"github.com/spf13/cobra"
 	"strings"
 )
@@ -73,15 +72,4 @@ func SendLineStats(dog *statsd.Client, line string, metric string) {
 	dog.Tags = append(dog.Tags, fmt.Sprintf("record:%s", metric))
 	dog.Count("dnsmasq.event", 1, dog.Tags, 1)
 	dog.Tags = oldTags
-}
-
-// OpenLogfile opens a logfile and passes back a *tail.Tail pointer.
-func OpenLogfile(logfile string) *tail.Tail {
-	t, err := tail.TailFile(logfile, tail.Config{
-		ReOpen: true,
-		Follow: true})
-	if err != nil {
-		Log("There was an error opening the file.", "info")
-	}
-	return t
 }

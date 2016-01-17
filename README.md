@@ -22,6 +22,25 @@ Global Flags:
       --verbose          log output to stdout
 ```
 
+## dnsmasq
+
+```
+darron@: bin/goshe dnsmasq -h
+Grab stats from dnsmasq logs and send to Datadog.
+
+Usage:
+  goshe dnsmasq [flags]
+
+Flags:
+      --log string   dnsmasq log file. (default "/var/log/dnsmasq/dnsmasq")
+
+Global Flags:
+  -i, --interval int     Interval when running in a loop. (default 5)
+      --prefix string    Metric prefix. (default "goshe")
+  -p, --process string   Process name to match.
+      --verbose          log output to stdout
+```
+
 ## ping
 
 ```

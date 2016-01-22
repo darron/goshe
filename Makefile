@@ -1,5 +1,5 @@
+GOSHE_VERSION="0.2-dev"
 GIT_COMMIT=$(shell git rev-parse HEAD)
-GOSHE_VERSION=$(shell ./version)
 COMPILE_DATE=$(shell date -u +%Y%m%d.%H%M%S)
 BUILD_FLAGS=-X main.CompileDate=$(COMPILE_DATE) -X main.GitCommit=$(GIT_COMMIT) -X main.Version=$(GOSHE_VERSION)
 

@@ -29,6 +29,7 @@ export GOROOT="/opt/go"
 export GOPATH="/home/vagrant/gocode"
 export PATH="/opt/go/bin://home/vagrant/gocode/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 export GOSHE_DEBUG=1
+cd /vagrant && make deps
 EOF
   SHELL
 end

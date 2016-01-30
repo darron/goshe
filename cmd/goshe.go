@@ -16,12 +16,18 @@ type ProcessList struct {
 	Pmem  uint64 // in bytes
 }
 
+// USR1 sends a USR1 signal to the process.
+func (p *ProcessList) USR1() bool {
+	fmt.Println("Sent USR1 to the process.")
+	return true
+}
+
 // GetMatches returns only the matches we want from running processes.
-func GetMatches(match string) []ProcessList {
+func GetMatches(match string, wantGoshe bool) []ProcessList {
 	var Matches []ProcessList
 	processes := GetProcessList()
 	// spew.Dump(processes)
-	Matches = MatchProcessList(*processes, match)
+	Matches = MatchProcessList(*processes, match, wantGoshe)
 	return Matches
 }
 
@@ -65,10 +71,10 @@ func ConvertProcessList(p *sigar.ProcList) *[]ProcessList {
 }
 
 // MatchProcessList looks through the struct processes that match.
-func MatchProcessList(procs []ProcessList, match string) []ProcessList {
+func MatchProcessList(procs []ProcessList, match string, goshe bool) []ProcessList {
 	var Matches []ProcessList
 	for _, proc := range procs {
-		if proc.Pname == match || proc.Pname == "goshe" {
+		if proc.Pname == match || (proc.Pname == "goshe" && goshe == true) {
 			Matches = append(Matches, proc)
 		}
 	}

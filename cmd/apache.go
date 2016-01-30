@@ -39,7 +39,7 @@ var apacheCmd = &cobra.Command{
 
 func startApache(cmd *cobra.Command, args []string) {
 	for {
-		matches := GetMatches(ProcessName)
+		matches := GetMatches(ProcessName, true)
 		if matches != nil {
 			fmt.Printf("Found %d matches.\n", len(matches)-1)
 			SendMetrics(matches)

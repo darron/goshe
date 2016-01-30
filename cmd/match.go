@@ -21,7 +21,7 @@ var matchCmd = &cobra.Command{
 
 func startMatch(cmd *cobra.Command, args []string) {
 	for {
-		matches := GetMatches(ProcessName)
+		matches := GetMatches(ProcessName, true)
 		if matches != nil {
 			fmt.Printf("Found %d matches.\n", len(matches)-1)
 			SendMetrics(matches)

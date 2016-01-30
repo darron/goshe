@@ -23,7 +23,7 @@ func TestMatchProcessList(t *testing.T) {
 	match := "go"
 	pids := GetPIDs()
 	processes := ConvertProcessList(pids)
-	matches := MatchProcessList(*processes, match)
+	matches := MatchProcessList(*processes, match, true)
 	if matches == nil {
 		t.Error("Got nill matches")
 	}
@@ -38,14 +38,14 @@ func TestGetProcessList(t *testing.T) {
 
 func TestGetMatches(t *testing.T) {
 	match := "go"
-	matches := GetMatches(match)
+	matches := GetMatches(match, true)
 	if matches == nil {
 		t.Error("Got no matches.")
 	}
 }
 
 func TestSendMetrics(t *testing.T) {
-	matches := GetMatches("go")
+	matches := GetMatches("go", true)
 	if matches != nil {
 		result := SendMetrics(matches)
 		if !result {

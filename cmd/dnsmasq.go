@@ -72,7 +72,7 @@ func SendLineStats(dog *statsd.Client, line string, metric string) {
 // Jan 29 20:32:55 dnsmasq[29389]: server 172.16.0.23#53: queries sent 211510, retried or failed 0
 
 func dnsmasqSignalStats(t *tail.Tail, dog *statsd.Client) {
-	go dnsmasqStatSignals()
+	go dnsmasqSignals()
 	for line := range t.Lines {
 		// Blank lines really mess this up - this protects against it.
 		if line.Text == "" {
@@ -91,9 +91,15 @@ func dnsmasqSignalStats(t *tail.Tail, dog *statsd.Client) {
 	}
 }
 
-func dnsmasqStatSignals() {
+func dnsmasqSignals() {
+	var procs []ProcessList
 	for {
-		fmt.Println("Sending a signal to dnsmasq.")
+		procs = GetMatches("dnsmasq", false)
+		if len(procs) >= 1 {
+			for _, proc := range procs {
+				proc.USR1()
+			}
+		}
 		time.Sleep(time.Duration(signalInterval) * time.Second)
 	}
 }

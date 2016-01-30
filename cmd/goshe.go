@@ -7,6 +7,7 @@ import (
 	"github.com/cloudfoundry/gosigar"
 	_ "github.com/davecgh/go-spew/spew" // I want to use this sometimes.
 	"strings"
+	"syscall"
 )
 
 // ProcessList is a simplified list of processes on a system.
@@ -18,7 +19,8 @@ type ProcessList struct {
 
 // USR1 sends a USR1 signal to the process.
 func (p *ProcessList) USR1() bool {
-	fmt.Println("Sent USR1 to the process.")
+	Log(fmt.Sprintf("Sent USR1 to pid: %d", p.Pid), "debug")
+	syscall.Kill(p.Pid, syscall.SIGUSR1)
 	return true
 }
 

@@ -7,6 +7,8 @@ import (
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/hpcloud/tail"
 	"github.com/spf13/cobra"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -81,9 +83,13 @@ func dnsmasqSignalStats(t *tail.Tail, dog *statsd.Client) {
 		content := strings.Split(line.Text, "]: ")[1]
 		if strings.HasPrefix(content, "time") {
 			fmt.Printf("time: %s\n", content)
+			grabTimestamp(content)
 		}
 		if strings.HasPrefix(content, "queries") {
 			fmt.Printf("queries: %s\n", content)
+			queriesForwarded(content)
+			queriesLocal(content)
+			queriesAuthoritativeZones(content)
 		}
 		if strings.HasPrefix(content, "server") {
 			fmt.Printf("server: %s\n", content)
@@ -91,15 +97,50 @@ func dnsmasqSignalStats(t *tail.Tail, dog *statsd.Client) {
 	}
 }
 
+func grabTimestamp(content string) {
+	r := regexp.MustCompile(`\d+`)
+	timestamp := r.FindString(content)
+	unixTimestamp, _ := strconv.Atoi(timestamp)
+	fmt.Printf("Timestamp: %d\n", unixTimestamp)
+}
+
+func queriesForwarded(content string) {
+	r := regexp.MustCompile(`forwarded (\d+),`)
+	forwarded := r.FindAllStringSubmatch(content, -1)
+	if forwarded != nil {
+		fwd := forwarded[0]
+		value := fwd[1]
+		queriesForwarded, _ := strconv.Atoi(value)
+		fmt.Printf("Forwarded Queries: %d\n", queriesForwarded)
+	}
+}
+
+func queriesLocal(content string) {
+	r := regexp.MustCompile(`queries answered locally (\d+)`)
+	local := r.FindAllStringSubmatch(content, -1)
+	if local != nil {
+		lcl := local[0]
+		lclv := lcl[1]
+		localResponses, _ := strconv.Atoi(lclv)
+		fmt.Printf("Responded Locally: %d\n", localResponses)
+	}
+}
+
+func queriesAuthoritativeZones(content string) {
+	r := regexp.MustCompile(`for authoritative zones (\d+)`)
+	zones := r.FindAllStringSubmatch(content, -1)
+	if zones != nil {
+		zone := zones[0]
+		zonev := zone[1]
+		authoritativeZones, _ := strconv.Atoi(zonev)
+		fmt.Printf("Authoritative Zones: %d\n", authoritativeZones)
+	}
+}
+
 func dnsmasqSignals() {
-	var procs []ProcessList
 	for {
-		procs = GetMatches("dnsmasq", false)
-		if len(procs) >= 1 {
-			for _, proc := range procs {
-				proc.USR1()
-			}
-		}
+		procs := GetMatches("dnsmasq", false)
+		sendUSR1(procs)
 		time.Sleep(time.Duration(signalInterval) * time.Second)
 	}
 }
@@ -126,6 +167,14 @@ func dnsmasqFullLogsStats(t *tail.Tail, dog *statsd.Client) {
 		if strings.HasPrefix(content, "reply") {
 			SendLineStats(dog, content, "reply")
 			continue
+		}
+	}
+}
+
+func sendUSR1(procs []ProcessList) {
+	if len(procs) > 0 {
+		for _, proc := range procs {
+			proc.USR1()
 		}
 	}
 }

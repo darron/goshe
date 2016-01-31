@@ -82,17 +82,18 @@ func dnsmasqSignalStats(t *tail.Tail, dog *statsd.Client) {
 		}
 		content := strings.Split(line.Text, "]: ")[1]
 		if strings.HasPrefix(content, "time") {
-			fmt.Printf("time: %s\n", content)
+			Log(fmt.Sprintf("line: %s", content), "debug")
 			grabTimestamp(content)
 		}
 		if strings.HasPrefix(content, "queries") {
-			fmt.Printf("queries: %s\n", content)
+			Log(fmt.Sprintf("line: %s", content), "debug")
 			queriesForwarded(content)
 			queriesLocal(content)
 			queriesAuthoritativeZones(content)
 		}
 		if strings.HasPrefix(content, "server") {
-			fmt.Printf("server: %s\n", content)
+			Log(fmt.Sprintf("line: %s", content), "debug")
+			serverStats(content)
 		}
 	}
 }
@@ -101,7 +102,19 @@ func grabTimestamp(content string) {
 	r := regexp.MustCompile(`\d+`)
 	timestamp := r.FindString(content)
 	unixTimestamp, _ := strconv.Atoi(timestamp)
-	fmt.Printf("Timestamp: %d\n", unixTimestamp)
+	Log(fmt.Sprintf("Timestamp: %d", unixTimestamp), "debug")
+}
+
+func serverStats(content string) {
+	r := regexp.MustCompile(`server (\d+\.\d+\.\d+\.\d+#\d+): queries sent (\d+), retried or failed (\d+)`)
+	server := r.FindAllStringSubmatch(content, -1)
+	if server != nil {
+		srvr := server[0]
+		serverAddress := srvr[1]
+		serverAddressSent, _ := strconv.Atoi(srvr[2])
+		serverAddressRetryFailures, _ := strconv.Atoi(srvr[3])
+		Log(fmt.Sprintf("Server: %s Queries: %d Retries/Failures: %d\n", serverAddress, serverAddressSent, serverAddressRetryFailures), "debug")
+	}
 }
 
 func queriesForwarded(content string) {
@@ -111,7 +124,7 @@ func queriesForwarded(content string) {
 		fwd := forwarded[0]
 		value := fwd[1]
 		queriesForwarded, _ := strconv.Atoi(value)
-		fmt.Printf("Forwarded Queries: %d\n", queriesForwarded)
+		Log(fmt.Sprintf("Forwarded Queries: %d", queriesForwarded), "debug")
 	}
 }
 
@@ -122,7 +135,7 @@ func queriesLocal(content string) {
 		lcl := local[0]
 		lclv := lcl[1]
 		localResponses, _ := strconv.Atoi(lclv)
-		fmt.Printf("Responded Locally: %d\n", localResponses)
+		Log(fmt.Sprintf("Responded Locally: %d", localResponses), "debug")
 	}
 }
 
@@ -133,7 +146,7 @@ func queriesAuthoritativeZones(content string) {
 		zone := zones[0]
 		zonev := zone[1]
 		authoritativeZones, _ := strconv.Atoi(zonev)
-		fmt.Printf("Authoritative Zones: %d\n", authoritativeZones)
+		Log(fmt.Sprintf("Authoritative Zones: %d", authoritativeZones), "debug")
 	}
 }
 

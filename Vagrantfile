@@ -24,6 +24,28 @@ Vagrant.configure(2) do |config|
   "node_name": "goshe-consul"
 }
 EOF
+    sudo cat > /etc/consul.d/kafka.json << EOF
+{
+  "service": {
+    "name": "kafka",
+    "check": {
+      "interval": "60s",
+      "script": "/bin/true"
+    }
+  }
+}
+EOF
+    sudo cat > /etc/consul.d/casandra.json << EOF
+{
+  "service": {
+    "name": "cassandra",
+    "check": {
+      "interval": "60s",
+      "script": "/bin/true"
+    }
+  }
+}
+EOF
     sudo cat > /etc/hosts.consul << EOF
 127.0.0.1 goshe.service.consul
 127.0.0.1 vagrant.service.consul

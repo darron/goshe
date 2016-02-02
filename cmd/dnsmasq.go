@@ -49,6 +49,12 @@ var (
 	// FullLogs determines whether we're looking at '--log-queries'
 	// levels of logs for dnsmasq.
 	FullLogs bool
+
+	// CurrentTimestamp is the current timestamp from the dnsmasq logs.
+	CurrentTimestamp int64
+
+	// CurrentYear is the year this is happening.
+	CurrentYear int
 )
 
 func init() {
@@ -74,10 +80,20 @@ func SendLineStats(dog *statsd.Client, line string, metric string) {
 // Jan 29 20:32:55 dnsmasq[29389]: server 172.16.0.23#53: queries sent 211510, retried or failed 0
 
 func dnsmasqSignalStats(t *tail.Tail, dog *statsd.Client) {
+	// Set the current time from timestamp. Helps us to skip any items that are old.
+	CurrentTimestamp = time.Now().Unix()
+
 	go dnsmasqSignals()
+	go setCurrentYear()
 	for line := range t.Lines {
 		// Blank lines really mess this up - this protects against it.
 		if line.Text == "" {
+			continue
+		}
+		// Parse line to grab timestamp - compare against CurrentTimestamp.
+		// If it's older - skip. We would rather skip instead of double
+		// count older data.
+		if isOldTimestamp(line.Text) {
 			continue
 		}
 		content := strings.Split(line.Text, "]: ")[1]
@@ -101,7 +117,8 @@ func dnsmasqSignalStats(t *tail.Tail, dog *statsd.Client) {
 func grabTimestamp(content string) {
 	r := regexp.MustCompile(`\d+`)
 	timestamp := r.FindString(content)
-	unixTimestamp, _ := strconv.Atoi(timestamp)
+	unixTimestamp, _ := strconv.ParseInt(timestamp, 10, 64)
+	CurrentTimestamp = unixTimestamp
 	Log(fmt.Sprintf("Timestamp: %d", unixTimestamp), "debug")
 }
 
@@ -113,7 +130,7 @@ func serverStats(content string) {
 		serverAddress := srvr[1]
 		serverAddressSent, _ := strconv.Atoi(srvr[2])
 		serverAddressRetryFailures, _ := strconv.Atoi(srvr[3])
-		Log(fmt.Sprintf("Server: %s Queries: %d Retries/Failures: %d\n", serverAddress, serverAddressSent, serverAddressRetryFailures), "debug")
+		Log(fmt.Sprintf("Time: %d Server: %s Queries: %d Retries/Failures: %d\n", CurrentTimestamp, serverAddress, serverAddressSent, serverAddressRetryFailures), "debug")
 	}
 }
 
@@ -190,4 +207,31 @@ func sendUSR1(procs []ProcessList) {
 			proc.USR1()
 		}
 	}
+}
+
+func getCurrentYear() int {
+	t := time.Now()
+	year := t.Year()
+	Log(fmt.Sprintf("Year: %d", year), "debug")
+	return year
+}
+
+func setCurrentYear() {
+	for {
+		CurrentYear = getCurrentYear()
+		time.Sleep(time.Duration(signalInterval) * time.Second)
+	}
+}
+
+func isOldTimestamp(line string) bool {
+	// Munge the Syslog timestamp and pull out the values.
+	dateTime := strings.TrimSpace(strings.Split(line, " dnsmasq")[0])
+	dateTime = fmt.Sprintf("%s %d", dateTime, CurrentYear)
+	stamp, _ := time.Parse("Jan _2 15:04:05 2006", dateTime)
+	// If it's older than now - then skip it.
+	if stamp.Unix() < CurrentTimestamp {
+		Log(fmt.Sprintf("Skipping: '%s'", dateTime), "info")
+		return true
+	}
+	return false
 }

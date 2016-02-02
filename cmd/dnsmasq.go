@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	dnsmasqLog     = "/var/log/dnsmasq/dnsmasq"
-	signalInterval = 60
+	dnsmasqLog      = "/var/log/dnsmasq/dnsmasq"
+	signalInterval  = 60
+	yearSetInterval = 10
 )
 
 var dnsmasqCmd = &cobra.Command{
@@ -219,7 +220,7 @@ func getCurrentYear() int {
 func setCurrentYear() {
 	for {
 		CurrentYear = getCurrentYear()
-		time.Sleep(time.Duration(signalInterval) * time.Second)
+		time.Sleep(time.Duration(yearSetInterval) * time.Second)
 	}
 }
 

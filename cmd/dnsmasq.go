@@ -43,6 +43,22 @@ func checkDnsmasqFlags() {
 	fmt.Println("Press CTRL-C to shutdown.")
 }
 
+// DNSServer is data gathered from a dnsmasq server log line.
+type DNSServer struct {
+	timestamp     int64
+	address       string
+	queriesSent   int64
+	queriesFailed int64
+}
+
+// DNSStats is data gathered from dnsmasq time, queries and server lines.
+type DNSStats struct {
+	timestamp        int64
+	queriesForwarded int64
+	queriesLocal     int64
+	servers          *[]DNSServer
+}
+
 var (
 	// DnsmasqLog is the logfile that dnsmasq logs to.
 	DnsmasqLog string

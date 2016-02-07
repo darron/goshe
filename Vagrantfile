@@ -61,12 +61,12 @@ CONFIG_DIR=/etc/dnsmasq.d,.dpkg-dist,.dpkg-old,.dpkg-new
 EOF
     sudo service dnsmasq restart
     sudo service consul start
-    cd /vagrant && make deps
     sudo cat > /etc/profile.d/go.sh << EOF
 export GOROOT="/opt/go"
 export GOPATH="/home/vagrant/gocode"
 export PATH="/opt/go/bin://home/vagrant/gocode/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 export GOSHE_DEBUG=1
 EOF
+    cd /vagrant && source /etc/profile.d/go.sh && make deps && make
   SHELL
 end

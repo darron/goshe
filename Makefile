@@ -17,6 +17,7 @@ deps:
 	go get -u golang.org/x/net/html/atom
 	go get -u github.com/yhat/scrape
 	go get -u github.com/hpcloud/tail/...
+	go get -u github.com/darron/goshe
 
 format:
 	gofmt -w .

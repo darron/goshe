@@ -3,8 +3,8 @@
 package main
 
 import (
-	"./cmd/"
 	"fmt"
+	"github.com/darron/goshe/cmd"
 	"log"
 	"log/syslog"
 	"os"

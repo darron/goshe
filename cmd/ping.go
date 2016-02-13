@@ -4,7 +4,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/DataDog/datadog-go/statsd"
+	"github.com/darron/datadog-go/statsd"
 	"github.com/spf13/cobra"
 	"github.com/tatsushid/go-fastping"
 	"net"

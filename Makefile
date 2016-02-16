@@ -6,16 +6,8 @@ BUILD_FLAGS=-X main.CompileDate=$(COMPILE_DATE) -X main.GitCommit=$(GIT_COMMIT) 
 all: build
 
 deps:
-	go get -u github.com/spf13/cobra
-	go get -u github.com/spf13/viper
 	go get -u github.com/progrium/basht
-	go get -u github.com/cloudfoundry/gosigar
 	go get -u github.com/davecgh/go-spew/spew
-	go get -u github.com/darron/datadog-go/statsd
-	go get -u github.com/tatsushid/go-fastping
-	go get -u golang.org/x/net/html
-	go get -u golang.org/x/net/html/atom
-	go get -u github.com/yhat/scrape
 	go get -u github.com/hpcloud/tail/...
 	go get -u github.com/darron/goshe
 

@@ -3,10 +3,12 @@
 package main
 
 import (
+	_ "expvar"
 	"fmt"
 	"github.com/darron/goshe/cmd"
 	"log"
 	"log/syslog"
+	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -50,7 +52,15 @@ func main() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go handleCtrlC(c)
 
+	// Listen for expvar
+	go setupExpvarHTTP()
+
 	cmd.RootCmd.Execute()
+}
+
+func setupExpvarHTTP() {
+	// Listen for expvar
+	http.ListenAndServe(":1313", nil)
 }
 
 // Any cleanup tasks on shutdown could happen here.

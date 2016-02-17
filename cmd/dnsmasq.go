@@ -144,12 +144,16 @@ func grabTimestamp(content string) {
 	// If we have correct stats in both Current and Previous.
 	if (StatsCurrent.timestamp > 0) && (StatsPrevious.timestamp > 0) {
 		// Let's send the stats to Datadog.
-		Log("Stats: Sending stats.", "info")
+		Log("Sending stats now.", "info")
+		Log(fmt.Sprintf("Current : %#v", StatsCurrent), "debug")
+		Log(fmt.Sprintf("Previous: %#v", StatsPrevious), "debug")
 		// Copy Current to Previous and zero out current.
+		StatsPrevious = StatsCurrent
+		StatsCurrent = new(DNSStats)
 	} else if (StatsCurrent.timestamp > 0) && (StatsPrevious.timestamp == 0) {
 		// We don't have enough stats to send.
 		// Copy Current to Previous and zero out current.
-		Log("Stats: Not enough stats to send.", "info")
+		Log("Not enough stats to send.", "info")
 		StatsPrevious = StatsCurrent
 		StatsCurrent = new(DNSStats)
 	}

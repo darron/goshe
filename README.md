@@ -34,6 +34,7 @@ Usage:
   goshe dnsmasq [flags]
 
 Flags:
+      --full         Use full --log-queries logs.
       --log string   dnsmasq log file. (default "/var/log/dnsmasq/dnsmasq")
 
 Global Flags:

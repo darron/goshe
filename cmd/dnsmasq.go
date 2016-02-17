@@ -53,10 +53,11 @@ type DNSServer struct {
 
 // DNSStats is data gathered from dnsmasq time, queries and server lines.
 type DNSStats struct {
-	timestamp        int64
-	queriesForwarded int64
-	queriesLocal     int64
-	servers          *[]DNSServer
+	timestamp          int64
+	queriesForwarded   int64
+	queriesLocal       int64
+	authoritativeZones int64
+	servers            []DNSServer
 }
 
 var (
@@ -72,6 +73,12 @@ var (
 
 	// CurrentYear is the year this is happening.
 	CurrentYear int
+
+	// StatsCurrent is the current timestamp's stats.
+	StatsCurrent *DNSStats
+
+	// StatsPrevious is the last timestamp's stats.
+	StatsPrevious *DNSStats
 )
 
 func init() {
@@ -99,6 +106,8 @@ func SendLineStats(dog *statsd.Client, line string, metric string) {
 func dnsmasqSignalStats(t *tail.Tail, dog *statsd.Client) {
 	// Set the current time from timestamp. Helps us to skip any items that are old.
 	CurrentTimestamp = time.Now().Unix()
+	StatsCurrent = new(DNSStats)
+	StatsPrevious = new(DNSStats)
 
 	go dnsmasqSignals()
 	go setCurrentYear()
@@ -132,10 +141,26 @@ func dnsmasqSignalStats(t *tail.Tail, dog *statsd.Client) {
 }
 
 func grabTimestamp(content string) {
+	// If we have correct stats in both Current and Previous.
+	if (StatsCurrent.timestamp > 0) && (StatsPrevious.timestamp > 0) {
+		// Let's send the stats to Datadog.
+		Log("Stats: Sending stats.", "info")
+		// Copy Current to Previous and zero out current.
+	} else if (StatsCurrent.timestamp > 0) && (StatsPrevious.timestamp == 0) {
+		// We don't have enough stats to send.
+		// Copy Current to Previous and zero out current.
+		Log("Stats: Not enough stats to send.", "info")
+		StatsPrevious = StatsCurrent
+		StatsCurrent = new(DNSStats)
+	}
+	// If everything's 0 - then just keep going.
+	// Grab the timestamp from the log line.
 	r := regexp.MustCompile(`\d+`)
 	timestamp := r.FindString(content)
 	unixTimestamp, _ := strconv.ParseInt(timestamp, 10, 64)
 	CurrentTimestamp = unixTimestamp
+	Log(fmt.Sprintf("StatsCurrent: %#v", StatsCurrent), "debug")
+	StatsCurrent.timestamp = unixTimestamp
 	Log(fmt.Sprintf("Timestamp: %d", unixTimestamp), "debug")
 }
 
@@ -145,8 +170,10 @@ func serverStats(content string) {
 	if server != nil {
 		srvr := server[0]
 		serverAddress := srvr[1]
-		serverAddressSent, _ := strconv.Atoi(srvr[2])
-		serverAddressRetryFailures, _ := strconv.Atoi(srvr[3])
+		serverAddressSent, _ := strconv.ParseInt(srvr[2], 10, 64)
+		serverAddressRetryFailures, _ := strconv.ParseInt(srvr[3], 10, 64)
+		serverStruct := DNSServer{timestamp: CurrentTimestamp, address: serverAddress, queriesSent: serverAddressSent, queriesFailed: serverAddressRetryFailures}
+		StatsCurrent.servers = append(StatsCurrent.servers, serverStruct)
 		Log(fmt.Sprintf("Time: %d Server: %s Queries: %d Retries/Failures: %d\n", CurrentTimestamp, serverAddress, serverAddressSent, serverAddressRetryFailures), "debug")
 	}
 }
@@ -156,8 +183,8 @@ func queriesForwarded(content string) {
 	forwarded := r.FindAllStringSubmatch(content, -1)
 	if forwarded != nil {
 		fwd := forwarded[0]
-		value := fwd[1]
-		queriesForwarded, _ := strconv.Atoi(value)
+		queriesForwarded, _ := strconv.ParseInt(fwd[1], 10, 64)
+		StatsCurrent.queriesForwarded = queriesForwarded
 		Log(fmt.Sprintf("Forwarded Queries: %d", queriesForwarded), "debug")
 	}
 }
@@ -167,8 +194,8 @@ func queriesLocal(content string) {
 	local := r.FindAllStringSubmatch(content, -1)
 	if local != nil {
 		lcl := local[0]
-		lclv := lcl[1]
-		localResponses, _ := strconv.Atoi(lclv)
+		localResponses, _ := strconv.ParseInt(lcl[1], 10, 64)
+		StatsCurrent.queriesLocal = localResponses
 		Log(fmt.Sprintf("Responded Locally: %d", localResponses), "debug")
 	}
 }
@@ -178,8 +205,8 @@ func queriesAuthoritativeZones(content string) {
 	zones := r.FindAllStringSubmatch(content, -1)
 	if zones != nil {
 		zone := zones[0]
-		zonev := zone[1]
-		authoritativeZones, _ := strconv.Atoi(zonev)
+		authoritativeZones, _ := strconv.ParseInt(zone[1], 10, 64)
+		StatsCurrent.authoritativeZones = authoritativeZones
 		Log(fmt.Sprintf("Authoritative Zones: %d", authoritativeZones), "debug")
 	}
 }

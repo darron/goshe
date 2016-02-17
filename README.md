@@ -3,7 +3,7 @@ goshe
 
 [![wercker status](https://app.wercker.com/status/f25e70250066e5f1e03744ef4d5be79e/m "wercker status")](https://app.wercker.com/project/bykey/f25e70250066e5f1e03744ef4d5be79e)
 
-Replacement for some old Ruby scripts that look for Apache processes and send their memory usage to Datadog.
+Replacement for some old Ruby scripts that send stats to Datadog. Works with Apache, dnsmasq, ping (afternoon hack) and general memory stats.
 
 ## apache
 

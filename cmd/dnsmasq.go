@@ -19,6 +19,23 @@ const (
 	yearSetInterval = 10
 )
 
+// DNSServer is data gathered from a dnsmasq server log line.
+type DNSServer struct {
+	timestamp     int64
+	address       string
+	queriesSent   int64
+	queriesFailed int64
+}
+
+// DNSStats is data gathered from dnsmasq time, queries and server lines.
+type DNSStats struct {
+	timestamp          int64
+	queriesForwarded   int64
+	queriesLocal       int64
+	authoritativeZones int64
+	servers            []DNSServer
+}
+
 var dnsmasqCmd = &cobra.Command{
 	Use:   "dnsmasq",
 	Short: "Grab stats from dnsmasq logs and send to Datadog.",
@@ -41,23 +58,6 @@ func startDnsmasq(cmd *cobra.Command, args []string) {
 
 func checkDnsmasqFlags() {
 	fmt.Println("Press CTRL-C to shutdown.")
-}
-
-// DNSServer is data gathered from a dnsmasq server log line.
-type DNSServer struct {
-	timestamp     int64
-	address       string
-	queriesSent   int64
-	queriesFailed int64
-}
-
-// DNSStats is data gathered from dnsmasq time, queries and server lines.
-type DNSStats struct {
-	timestamp          int64
-	queriesForwarded   int64
-	queriesLocal       int64
-	authoritativeZones int64
-	servers            []DNSServer
 }
 
 var (
@@ -86,22 +86,6 @@ func init() {
 	dnsmasqCmd.Flags().BoolVarP(&FullLogs, "full", "", false, "Use full --log-queries logs.")
 	RootCmd.AddCommand(dnsmasqCmd)
 }
-
-// SendLineStats sends the stats to Datadog.
-func SendLineStats(dog *statsd.Client, line string, metric string) {
-	Log(fmt.Sprintf("%s: %s", metric, line), "debug")
-	oldTags := dog.Tags
-	dog.Tags = append(dog.Tags, fmt.Sprintf("record:%s", metric))
-	dog.Count("dnsmasq.event", 1, dog.Tags, 1)
-	dog.Tags = oldTags
-}
-
-// Example Logs:
-// Jan 29 20:32:55 dnsmasq[29389]: time 1454099575
-// Jan 29 20:32:55 dnsmasq[29389]: cache size 150, 41/1841 cache insertions re-used unexpired cache entries.
-// Jan 29 20:32:55 dnsmasq[29389]: queries forwarded 354453, queries answered locally 251099667
-// Jan 29 20:32:55 dnsmasq[29389]: server 127.0.0.1#8600: queries sent 142940, retried or failed 0
-// Jan 29 20:32:55 dnsmasq[29389]: server 172.16.0.23#53: queries sent 211510, retried or failed 0
 
 func dnsmasqSignalStats(t *tail.Tail, dog *statsd.Client) {
 	// Set the current time from timestamp. Helps us to skip any items that are old.
@@ -155,7 +139,7 @@ func grabTimestamp(content string) {
 }
 
 func checkStats() {
-	// If we have correct stats in both Current and Previous.
+	// If we have actual stats in both Current and Previous.
 	if (StatsCurrent.timestamp > 0) && (StatsPrevious.timestamp > 0) {
 		// Let's send the stats to Datadog.
 		SendSignalStats(*StatsCurrent, *StatsPrevious)
@@ -246,32 +230,6 @@ func dnsmasqSignals() {
 		procs := GetMatches("dnsmasq", false)
 		sendUSR1(procs)
 		time.Sleep(time.Duration(signalInterval) * time.Second)
-	}
-}
-
-func dnsmasqFullLogsStats(t *tail.Tail, dog *statsd.Client) {
-	for line := range t.Lines {
-		content := strings.Split(line.Text, "]: ")[1]
-		if strings.HasPrefix(content, "/") {
-			SendLineStats(dog, content, "hosts")
-			continue
-		}
-		if strings.HasPrefix(content, "query") {
-			SendLineStats(dog, content, "query")
-			continue
-		}
-		if strings.HasPrefix(content, "cached") {
-			SendLineStats(dog, content, "cached")
-			continue
-		}
-		if strings.HasPrefix(content, "forwarded") {
-			SendLineStats(dog, content, "forwarded")
-			continue
-		}
-		if strings.HasPrefix(content, "reply") {
-			SendLineStats(dog, content, "reply")
-			continue
-		}
 	}
 }
 

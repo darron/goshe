@@ -141,10 +141,24 @@ func dnsmasqSignalStats(t *tail.Tail, dog *statsd.Client) {
 }
 
 func grabTimestamp(content string) {
+	// Check to see if we can send stats.
+	// A new timestamp means we're getting new stats.
+	checkStats()
+	// Grab the timestamp from the log line.
+	r := regexp.MustCompile(`\d+`)
+	timestamp := r.FindString(content)
+	unixTimestamp, _ := strconv.ParseInt(timestamp, 10, 64)
+	CurrentTimestamp = unixTimestamp
+	Log(fmt.Sprintf("StatsCurrent: %#v", StatsCurrent), "debug")
+	StatsCurrent.timestamp = unixTimestamp
+	Log(fmt.Sprintf("Timestamp: %d", unixTimestamp), "debug")
+}
+
+func checkStats() {
 	// If we have correct stats in both Current and Previous.
 	if (StatsCurrent.timestamp > 0) && (StatsPrevious.timestamp > 0) {
 		// Let's send the stats to Datadog.
-		Log("Sending stats now.", "info")
+		SendSignalStats(*StatsCurrent, *StatsPrevious)
 		Log(fmt.Sprintf("Current : %#v", StatsCurrent), "debug")
 		Log(fmt.Sprintf("Previous: %#v", StatsPrevious), "debug")
 		// Copy Current to Previous and zero out current.
@@ -156,16 +170,28 @@ func grabTimestamp(content string) {
 		Log("Not enough stats to send.", "info")
 		StatsPrevious = StatsCurrent
 		StatsCurrent = new(DNSStats)
+	} else if (StatsCurrent.timestamp == 0) && (StatsPrevious.timestamp == 0) {
+		Log("Just starting up - nothing to do.", "info")
 	}
-	// If everything's 0 - then just keep going.
-	// Grab the timestamp from the log line.
-	r := regexp.MustCompile(`\d+`)
-	timestamp := r.FindString(content)
-	unixTimestamp, _ := strconv.ParseInt(timestamp, 10, 64)
-	CurrentTimestamp = unixTimestamp
-	Log(fmt.Sprintf("StatsCurrent: %#v", StatsCurrent), "debug")
-	StatsCurrent.timestamp = unixTimestamp
-	Log(fmt.Sprintf("Timestamp: %d", unixTimestamp), "debug")
+}
+
+// SendSignalStats sends stats to datadog using copies of the current data.
+func SendSignalStats(current DNSStats, previous DNSStats) {
+	Log("Sending stats now.", "info")
+	Log(fmt.Sprintf("Current Copy : %#v", current), "debug")
+	Log(fmt.Sprintf("Previous Copy: %#v", previous), "debug")
+	forwards := current.queriesForwarded - previous.queriesForwarded
+	locallyAnswered := current.queriesLocal - previous.queriesLocal
+	dog := DogConnect()
+	sendQueriesStats("dnsmasq.queries", forwards, "query:forward", dog)
+	sendQueriesStats("dnsmasq.queries", locallyAnswered, "query:host", dog)
+}
+
+func sendQueriesStats(metric string, value int64, additionalTag string, dog *statsd.Client) {
+	tags := dog.Tags
+	dog.Tags = append(dog.Tags, additionalTag)
+	dog.Count(metric, value, tags, signalInterval)
+	dog.Tags = tags
 }
 
 func serverStats(content string) {

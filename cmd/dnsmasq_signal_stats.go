@@ -118,7 +118,7 @@ func SendSignalStats(current DNSStats, previous DNSStats) {
 	locallyAnswered := current.queriesLocal - previous.queriesLocal
 	dog := DogConnect()
 	sendQueriesStats("dnsmasq.queries", forwards, "query:forward", dog)
-	sendQueriesStats("dnsmasq.queries", locallyAnswered, "query:host", dog)
+	sendQueriesStats("dnsmasq.queries", locallyAnswered, "query:local", dog)
 }
 
 // sendQueriesStats actually sends the stats to Dogstatsd.

@@ -117,8 +117,24 @@ func SendSignalStats(current DNSStats, previous DNSStats) {
 	forwards := current.queriesForwarded - previous.queriesForwarded
 	locallyAnswered := current.queriesLocal - previous.queriesLocal
 	dog := DogConnect()
-	sendQueriesStats("dnsmasq.queries", forwards, "query:forward", dog)
-	sendQueriesStats("dnsmasq.queries", locallyAnswered, "query:local", dog)
+	// Make sure the stats are positive - if they're negative dnsmasq must have been
+	// restarted and those numbers will not be accurate.
+	if forwards > 0 {
+		sendQueriesStats("dnsmasq.queries", forwards, "query:forward", dog)
+		Log(fmt.Sprintf("Forwards: %d", forwards), "debug")
+	} else {
+		Log("Negative forwarded queries detected - dnsmasq must have been restarted.", "info")
+		sendQueriesStats("dnsmasq.queries", current.queriesForwarded, "query:forward", dog)
+		Log(fmt.Sprintf("Forwards: %d", current.queriesForwarded), "debug")
+	}
+	if locallyAnswered > 0 {
+		sendQueriesStats("dnsmasq.queries", locallyAnswered, "query:local", dog)
+		Log(fmt.Sprintf("Locally Answered: %d", locallyAnswered), "debug")
+	} else {
+		Log("Negative locally answered queries detected - dnsmasq must have been restarted.", "info")
+		sendQueriesStats("dnsmasq.queries", current.queriesLocal, "query:local", dog)
+		Log(fmt.Sprintf("Locally Answered: %d", current.queriesLocal), "debug")
+	}
 }
 
 // sendQueriesStats actually sends the stats to Dogstatsd.

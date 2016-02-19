@@ -52,8 +52,10 @@ func main() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go handleCtrlC(c)
 
-	// Listen for expvar
-	go setupExpvarHTTP()
+	// Listen for expvar if we have GOSHE_DEBUG set.
+	if os.Getenv("GOSHE_DEBUG") != "" {
+		go setupExpvarHTTP()
+	}
 
 	cmd.RootCmd.Execute()
 }

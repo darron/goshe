@@ -9,8 +9,8 @@ import (
 
 const (
 	dnsmasqLog      = "/var/log/dnsmasq/dnsmasq"
-	signalInterval  = 60
-	yearSetInterval = 10
+	signalInterval  = 20
+	yearSetInterval = 1
 )
 
 var dnsmasqCmd = &cobra.Command{

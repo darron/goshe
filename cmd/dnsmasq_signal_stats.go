@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/hpcloud/tail"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -125,6 +126,9 @@ func SendSignalStats(current DNSStats, previous DNSStats) {
 func sendQueriesStats(metric string, value int64, additionalTag string, dog *statsd.Client) {
 	tags := dog.Tags
 	dog.Tags = append(dog.Tags, additionalTag)
+	if os.Getenv("GOSHE_VERSION") != "" {
+		dog.Tags = append(dog.Tags, fmt.Sprintf("goshe_version:%s", os.Getenv("GOSHE_VERSION")))
+	}
 	dog.Count(metric, value, tags, signalInterval)
 	dog.Tags = tags
 }

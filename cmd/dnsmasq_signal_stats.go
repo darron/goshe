@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/hpcloud/tail"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -141,6 +142,9 @@ func SendSignalStats(current DNSStats, previous DNSStats) {
 func sendQueriesStats(metric string, value int64, additionalTag string, dog *statsd.Client) {
 	tags := dog.Tags
 	dog.Tags = append(dog.Tags, additionalTag)
+	if os.Getenv("GOSHE_ADDITIONAL_TAGS") != "" {
+		dog.Tags = append(dog.Tags, os.Getenv("GOSHE_ADDITIONAL_TAGS"))
+	}
 	dog.Count(metric, value, tags, signalInterval)
 	dog.Tags = tags
 }
@@ -202,7 +206,11 @@ func queriesAuthoritativeZones(content string) {
 func dnsmasqSignals() {
 	for {
 		procs := GetMatches("dnsmasq", false)
-		sendUSR1(procs)
+		// If we've defined this ENV VAR - then we do NOT want to send
+		// signals. It's a way to run multiple versions at the same time.
+		if os.Getenv("GOSHE_DISABLE_DNSMASQ_SIGNALS") == "" {
+			sendUSR1(procs)
+		}
 		time.Sleep(time.Duration(signalInterval) * time.Second)
 	}
 }

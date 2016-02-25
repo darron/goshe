@@ -1,13 +1,13 @@
 class Goshe < FPM::Cookery::Recipe
   name 'goshe'
 
-  version '0.2'
-  revision '2'
+  version '0.3'
+  revision '1'
   description 'Small utility to send stats to Datadog.'
 
   homepage 'https://github.com/darron/goshe'
   source "https://github.com/darron/#{name}/releases/download/v#{version}/#{name}-#{version}-linux-amd64.zip"
-  sha256 'c835404c077b48f854ef9e8a9ec826a3a9e2651654be3b37d78efc470dbba006'
+  sha256 '6e808b4a54b2239c64f62d4e3faaed852425aaf0dc646f8bf6636e4b1bf56c20'
 
   maintainer 'Darron <darron@froese.org>'
   vendor 'octohost'

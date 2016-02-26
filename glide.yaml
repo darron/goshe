@@ -1,0 +1,18 @@
+package: github.com/darron/goshe
+import:
+- package: github.com/DataDog/datadog-go
+  subpackages:
+  - statsd
+- package: github.com/cloudfoundry/gosigar
+- package: github.com/davecgh/go-spew
+  subpackages:
+  - spew
+- package: github.com/hpcloud/tail
+- package: github.com/spf13/cobra
+- package: github.com/spf13/viper
+- package: github.com/tatsushid/go-fastping
+- package: github.com/yhat/scrape
+- package: golang.org/x/net
+  subpackages:
+  - html
+  - html/atom

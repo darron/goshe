@@ -3,6 +3,7 @@ GIT_COMMIT=$(shell git rev-parse HEAD)
 COMPILE_DATE=$(shell date -u +%Y%m%d.%H%M%S)
 BUILD_FLAGS=-X main.CompileDate=$(COMPILE_DATE) -X main.GitCommit=$(GIT_COMMIT) -X main.Version=$(GOSHE_VERSION)
 UNAME=$(shell uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(shell arch)
 
 all: build
 
@@ -23,7 +24,7 @@ build: clean
 
 gzip:
 	gzip bin/goshe
-	mv bin/goshe.gz bin/goshe-$(GOSHE_VERSION)-$(UNAME).gz
+	mv bin/goshe.gz bin/goshe-$(GOSHE_VERSION)-$(UNAME)-$(ARCH).gz
 
 release: clean build gzip
 

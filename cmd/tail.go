@@ -23,7 +23,7 @@ var tailCmd = &cobra.Command{
 
 func startTail(cmd *cobra.Command, args []string) {
 	// Try to compile the regex - throw an error if it doesn't work.
-	CompiledRegex, err := regexp.Compile(Match)
+	regex, err := regexp.Compile(Match)
 	if err != nil {
 		fmt.Println("There's something wrong with your regex. Try again.")
 		fmt.Printf("Error: %s\n", err)
@@ -31,7 +31,7 @@ func startTail(cmd *cobra.Command, args []string) {
 	}
 	dog := DogConnect()
 	t := OpenLogfile(LogFile)
-	TailLog(t, dog, CompiledRegex)
+	TailLog(t, dog, regex)
 }
 
 func checkTailFlags() {
@@ -56,9 +56,6 @@ var (
 
 	// Match is the regex to match in the file.
 	Match string
-
-	// CompiledRegex is where we store the match
-	CompiledRegex *regexp.Regexp
 
 	// MetricName is the name of the metric to send to Datadog.
 	MetricName string

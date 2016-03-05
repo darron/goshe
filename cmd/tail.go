@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"regexp"
+	"strings"
 )
 
 var tailCmd = &cobra.Command{
@@ -47,6 +48,11 @@ func checkTailFlags() {
 		fmt.Println("Please enter a metric name to send '--metric'")
 		os.Exit(1)
 	}
+	// If you're sending a MetricTag - it needs to have a ':'
+	if MetricTag != "" && !strings.Contains(MetricTag, ":") {
+		fmt.Println("Tags need to contain a ':'")
+		os.Exit(1)
+	}
 	fmt.Println("Press CTRL-C to shutdown.")
 }
 
@@ -59,12 +65,16 @@ var (
 
 	// MetricName is the name of the metric to send to Datadog.
 	MetricName string
+
+	// MetricTag is the name of the tag to add to the metric we're sending to Datadog.
+	MetricTag string
 )
 
 func init() {
 	tailCmd.Flags().StringVarP(&LogFile, "log", "", "", "File to tail.")
 	tailCmd.Flags().StringVarP(&Match, "match", "", "", "Match this regex.")
 	tailCmd.Flags().StringVarP(&MetricName, "metric", "", "", "Send this metric name.")
+	tailCmd.Flags().StringVarP(&MetricTag, "tag", "", "", "Add this tag to the metric.")
 	RootCmd.AddCommand(tailCmd)
 }
 
@@ -79,7 +89,11 @@ func TailLog(t *tail.Tail, dog *statsd.Client, r *regexp.Regexp) {
 		if match != nil {
 			Log(fmt.Sprintf("Match: %s", match), "debug")
 			Log(fmt.Sprintf("Sending Stat: %s", MetricName), "debug")
-			dog.Count(MetricName, 1, dog.Tags, 1)
+			tags := dog.Tags
+			if MetricTag != "" {
+				tags = append(tags, MetricTag)
+			}
+			dog.Count(MetricName, 1, tags, 1)
 		}
 	}
 }

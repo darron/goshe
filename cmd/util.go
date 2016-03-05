@@ -83,8 +83,9 @@ func LoadConfig() {
 // OpenLogfile opens a logfile and passes back a *tail.Tail pointer.
 func OpenLogfile(logfile string) *tail.Tail {
 	t, err := tail.TailFile(logfile, tail.Config{
-		ReOpen: true,
-		Follow: true})
+		Location: &tail.SeekInfo{Whence: os.SEEK_END},
+		ReOpen:   true,
+		Follow:   true})
 	if err != nil {
 		Log("There was an error opening the file.", "info")
 	}

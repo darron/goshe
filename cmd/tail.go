@@ -59,16 +59,12 @@ var (
 
 	// MetricName is the name of the metric to send to Datadog.
 	MetricName string
-
-	// SkipToEnd sets up the tail to go directly to the end of the file.
-	SkipToEnd bool
 )
 
 func init() {
 	tailCmd.Flags().StringVarP(&LogFile, "log", "", "", "File to tail.")
 	tailCmd.Flags().StringVarP(&Match, "match", "", "", "Match this regex.")
 	tailCmd.Flags().StringVarP(&MetricName, "metric", "", "", "Send this metric name.")
-	tailCmd.Flags().BoolVarP(&SkipToEnd, "skip", "", true, "Skip to the end of the file.")
 	RootCmd.AddCommand(tailCmd)
 }
 

@@ -112,7 +112,7 @@ func checkStats() {
 // SendSignalStats sends stats to Datadog using copies of the current data.
 // TODO: Right now we're ignoring all sorts of stats - will see if we need them.
 func SendSignalStats(current DNSStats, previous DNSStats) {
-	Log("Sending stats now.", "info")
+	Log("Sending stats now.", "debug")
 	Log(fmt.Sprintf("Current Copy : %#v", current), "debug")
 	Log(fmt.Sprintf("Previous Copy: %#v", previous), "debug")
 	forwards := current.queriesForwarded - previous.queriesForwarded

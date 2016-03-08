@@ -49,9 +49,6 @@ var (
 	// CurrentTimestamp is the current timestamp from the dnsmasq logs.
 	CurrentTimestamp int64
 
-	// CurrentYear is the year this is happening.
-	CurrentYear int
-
 	// StatsCurrent is the current timestamp's stats.
 	StatsCurrent *DNSStats
 

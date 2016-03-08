@@ -39,16 +39,9 @@ func dnsmasqSignalStats(t *tail.Tail) {
 	StatsPrevious = new(DNSStats)
 
 	go dnsmasqSignals()
-	go setCurrentYear()
 	for line := range t.Lines {
 		// Blank lines really mess this up - this protects against it.
 		if line.Text == "" {
-			continue
-		}
-		// Parse line to grab timestamp - compare against CurrentTimestamp.
-		// If it's older - skip. We would rather skip instead of double
-		// count older data.
-		if isOldTimestamp(line.Text) {
 			continue
 		}
 		// Let's process the lines.
@@ -222,38 +215,4 @@ func sendUSR1(procs []ProcessList) {
 			proc.USR1()
 		}
 	}
-}
-
-// NONE of the following would be necessary if syslog had a year in the
-// format. Really? https://twitter.com/darron/status/694381994457739264
-
-// getCurrentYear returns the current year.
-func getCurrentYear() int {
-	t := time.Now()
-	year := t.Year()
-	Log(fmt.Sprintf("Year: %d", year), "debug")
-	return year
-}
-
-// setCurrentYear sets the current year so that it's available quickly.
-func setCurrentYear() {
-	for {
-		CurrentYear = getCurrentYear()
-		time.Sleep(time.Duration(yearSetInterval) * time.Second)
-	}
-}
-
-// isOldTimestamp checks the log line against the CurrentTimestamp
-// and skips the line if it's old.
-func isOldTimestamp(line string) bool {
-	// Munge the Syslog timestamp and pull out the values.
-	dateTime := strings.TrimSpace(strings.Split(line, " dnsmasq")[0])
-	dateTime = fmt.Sprintf("%s %d", dateTime, CurrentYear)
-	stamp, _ := time.Parse("Jan _2 15:04:05 2006", dateTime)
-	// If it's older than now - then skip it.
-	if stamp.Unix() < CurrentTimestamp {
-		Log(fmt.Sprintf("Skipping: '%s'", dateTime), "info")
-		return true
-	}
-	return false
 }

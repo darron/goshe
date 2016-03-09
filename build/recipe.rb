@@ -1,13 +1,13 @@
 class Goshe < FPM::Cookery::Recipe
   name 'goshe'
 
-  version '0.3'
+  version '0.4'
   revision '1'
   description 'Small utility to send stats to Datadog.'
 
   homepage 'https://github.com/darron/goshe'
-  source "https://github.com/darron/#{name}/releases/download/v#{version}/#{name}-#{version}-linux-amd64.zip"
-  sha256 '6e808b4a54b2239c64f62d4e3faaed852425aaf0dc646f8bf6636e4b1bf56c20'
+  source "https://github.com/darron/#{name}/releases/download/v#{version}/#{name}-#{version}-linux-x86_64.zip"
+  sha256 '983a1a87c5ff37675963c02af8ad05c0027c26d2453c8e3d7a58da012ef240f2'
 
   maintainer 'Darron <darron@froese.org>'
   vendor 'octohost'
@@ -21,7 +21,7 @@ class Goshe < FPM::Cookery::Recipe
 
   def build
     safesystem "mkdir -p #{builddir}/usr/local/bin/"
-    safesystem "cp -f #{builddir}/#{name}-#{version}-linux-amd64/#{name}-#{version}-linux-amd64 #{builddir}/usr/local/bin/#{name}"
+    safesystem "cp -f #{builddir}/#{name}-#{version}-linux-x86_64/#{name}-#{version}-linux-x86_64 #{builddir}/usr/local/bin/#{name}"
   end
 
   def install

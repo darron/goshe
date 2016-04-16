@@ -60,6 +60,10 @@ func dnsmasqSignalStats(t *tail.Tail) {
 			Log(fmt.Sprintf("line: %s", content), "debug")
 			serverStats(content)
 		}
+		if strings.HasPrefix(content, "read") {
+			Log(fmt.Sprintf("line: %s", content), "debug")
+			readStats(content)
+		}
 	}
 }
 
@@ -191,6 +195,17 @@ func queriesAuthoritativeZones(content string) {
 		authoritativeZones, _ := strconv.ParseInt(zone[1], 10, 64)
 		StatsCurrent.authoritativeZones = authoritativeZones
 		Log(fmt.Sprintf("Authoritative Zones: %d", authoritativeZones), "debug")
+	}
+}
+
+func readStats(content string) {
+	r := regexp.MustCompile(`read [[:graph:]] - (\d+) addresses`)
+	domainsLoaded := r.FindAllStringSubmatch(content, -1)
+	if domainsLoaded != nil {
+		fileStats := domainsLoaded[0]
+		file := fileStats[0]
+		addresses, _ := strconv.ParseInt(fileStats[1], 10, 64)
+		Log(fmt.Sprintf("File: %s Addresses: %d", file, addresses), "debug")
 	}
 }
 

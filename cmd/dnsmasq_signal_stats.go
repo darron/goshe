@@ -198,15 +198,38 @@ func queriesAuthoritativeZones(content string) {
 	}
 }
 
+func sendHistogramStats(metric string, value float64, additionalTag string, dog *statsd.Client) {
+	tags := dog.Tags
+	dog.Tags = append(dog.Tags, additionalTag)
+	if os.Getenv("GOSHE_ADDITIONAL_TAGS") != "" {
+		dog.Tags = append(dog.Tags, os.Getenv("GOSHE_ADDITIONAL_TAGS"))
+	}
+	dog.Histogram(metric, value, tags, 1)
+	dog.Tags = tags
+}
+
 func readStats(content string) {
-	r := regexp.MustCompile(`read [[:graph:]] - (\d+) addresses`)
+	filename, addresses := LoadFilesStats(content)
+	if filename != "" && addresses > 0 {
+		Log("Sending the loaded file stats", "debug")
+		dog := DogConnect()
+		fileTag := fmt.Sprintf("filename:%s", filename)
+		sendHistogramStats("dnsmasq.hosts_file_stats", addresses, fileTag, dog)
+	}
+}
+
+// LoadFilesStats - a testable function to get the loaded file stats.
+func LoadFilesStats(content string) (string, float64) {
+	r := regexp.MustCompile(`read (.*) - (\d+) addresses`)
 	domainsLoaded := r.FindAllStringSubmatch(content, -1)
 	if domainsLoaded != nil {
-		fileStats := domainsLoaded[0]
-		file := fileStats[0]
-		addresses, _ := strconv.ParseInt(fileStats[1], 10, 64)
-		Log(fmt.Sprintf("File: %s Addresses: %d", file, addresses), "debug")
+		pieces := domainsLoaded[0]
+		filename := pieces[1]
+		addresses, _ := strconv.ParseFloat(pieces[2], 64)
+		Log(fmt.Sprintf("Filename: %s, Addresses: %f", filename, addresses), "debug")
+		return filename, addresses
 	}
+	return "", 0
 }
 
 // dnsmasqSignals loops and send USR1 to each dnsmasq process

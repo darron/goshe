@@ -39,6 +39,9 @@ func dnsmasqSignalStats(t *tail.Tail) {
 	StatsPrevious = new(DNSStats)
 
 	go dnsmasqSignals()
+	if MemoryFlag {
+		go sendDnsmasqMemStats()
+	}
 	for line := range t.Lines {
 		// Blank lines really mess this up - this protects against it.
 		if line.Text == "" {
@@ -252,5 +255,20 @@ func sendUSR1(procs []ProcessList) {
 		for _, proc := range procs {
 			proc.USR1()
 		}
+	}
+}
+
+// sendDnsmasqMemStats sends memory stats for dnsmasq if MemoryFlag
+// is true.
+func sendDnsmasqMemStats()  {
+	for {
+		matches := GetMatches("dnsmasq", false)
+		if matches != nil {
+			fmt.Printf("Found %d matches.\n", len(matches))
+			SendMetrics(matches)
+		} else {
+			fmt.Printf("Did not find any matches.\n")
+		}
+		time.Sleep(time.Duration(Interval) * time.Second)
 	}
 }

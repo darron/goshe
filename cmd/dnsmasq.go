@@ -54,10 +54,14 @@ var (
 
 	// StatsPrevious is the last timestamp's stats.
 	StatsPrevious *DNSStats
+
+	// MemoryFlag sends dnsmasq memory stats to Datadog if true.
+	MemoryFlag bool
 )
 
 func init() {
 	dnsmasqCmd.Flags().StringVarP(&DnsmasqLog, "log", "", dnsmasqLog, "dnsmasq log file.")
 	dnsmasqCmd.Flags().BoolVarP(&FullLogs, "full", "", false, "Use full --log-queries logs.")
+	dnsmasqCmd.Flags().BoolVarP(&MemoryFlag, "mem", "", false, "Send dnsmasq memory stats.")
 	RootCmd.AddCommand(dnsmasqCmd)
 }

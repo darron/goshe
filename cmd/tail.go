@@ -3,19 +3,21 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/hpcloud/tail"
 	"github.com/spf13/cobra"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 )
 
 var tailCmd = &cobra.Command{
 	Use:   "tail",
-	Short: "Tail logs, match lines and send metrics to Datadog.",
-	Long:  `Tail logs, match lines and send metrics to Datadog.`,
+	Short: "Tail logs or stdout, match lines and send metrics to Datadog.",
+	Long:  `Tail logs or stdout, match lines and send metrics to Datadog.`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		checkTailFlags()
 	},
@@ -31,13 +33,24 @@ func startTail(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	dog := DogConnect()
-	t := OpenLogfile(LogFile)
-	TailLog(t, dog, regex)
+	// For the Logfile option.
+	if LogFile != "" {
+		t := OpenLogfile(LogFile)
+		TailLog(t, dog, regex)
+	}
+	// If you're capturing stdout of a program.
+	if ProgramStdout != "" {
+		TailOutput(dog, regex)
+	}
 }
 
 func checkTailFlags() {
-	if LogFile == "" {
-		fmt.Println("Please enter a filename to tail '--log'")
+	if LogFile == "" && ProgramStdout == "" {
+		fmt.Println("Please enter a filename to tail '--log' OR a program to run '--program'")
+		os.Exit(1)
+	}
+	if LogFile != "" && ProgramStdout != "" {
+		fmt.Println("Please choose '--log' OR '--program' - you cannot have both.")
 		os.Exit(1)
 	}
 	if Match == "" {
@@ -60,6 +73,9 @@ var (
 	// LogFile is the file to tail.
 	LogFile string
 
+	// ProgramStdout is a program to run to capture stdout.
+	ProgramStdout string
+
 	// Match is the regex to match in the file.
 	Match string
 
@@ -72,6 +88,7 @@ var (
 
 func init() {
 	tailCmd.Flags().StringVarP(&LogFile, "log", "", "", "File to tail.")
+	tailCmd.Flags().StringVarP(&ProgramStdout, "program", "", "", "Program to run for stdout.")
 	tailCmd.Flags().StringVarP(&Match, "match", "", "", "Match this regex.")
 	tailCmd.Flags().StringVarP(&MetricName, "metric", "", "", "Send this metric name.")
 	tailCmd.Flags().StringVarP(&MetricTag, "tag", "", "", "Add this tag to the metric.")
@@ -95,5 +112,63 @@ func TailLog(t *tail.Tail, dog *statsd.Client, r *regexp.Regexp) {
 			}
 			dog.Count(MetricName, 1, tags, 1)
 		}
+	}
+}
+
+// TailOutput watches the output of ProgramStdout and matches on those lines.
+func TailOutput(dog *statsd.Client, r *regexp.Regexp) {
+	cli, args := processCommand(ProgramStdout)
+	runCommand(cli, args, r, dog)
+}
+
+func processCommand(command string) (string, []string) {
+	var cli string
+	var args []string
+
+	parts := strings.Fields(command)
+	cli = parts[0]
+	args = parts[1:]
+	Log(fmt.Sprintf("Cli: %s Args: %s", cli, args), "debug")
+
+	return cli, args
+}
+
+func runCommand(cli string, args []string, r *regexp.Regexp, dog *statsd.Client) {
+	cmd := exec.Command(cli, args...)
+	cmdReader, err := cmd.StdoutPipe()
+	if err != nil {
+		Log(fmt.Sprintf("There was an error running '%s': %s", ProgramStdout, err), "info")
+		os.Exit(1)
+	}
+	scanner := bufio.NewScanner(cmdReader)
+	go func() {
+		for scanner.Scan() {
+			line := scanner.Text()
+			Log(fmt.Sprintf("Line: %s", line), "debug")
+			// Blank lines are bad for the matching software - it freaks out.
+			if line == "" {
+				continue
+			}
+			match := r.FindAllStringSubmatch(line, -1)
+			if match != nil {
+				Log(fmt.Sprintf("Match: %s", match), "debug")
+				Log(fmt.Sprintf("Sending Stat: %s", MetricName), "debug")
+				tags := dog.Tags
+				if MetricTag != "" {
+					tags = append(tags, MetricTag)
+				}
+				dog.Count(MetricName, 1, tags, 1)
+			}
+		}
+	}()
+
+	err = cmd.Start()
+	if err != nil {
+		Log("There was and error starting the command.", "info")
+	}
+
+	err = cmd.Wait()
+	if err != nil {
+		Log("There was and error waiting for the command.", "info")
 	}
 }

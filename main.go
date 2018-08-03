@@ -5,7 +5,7 @@ package main
 import (
 	_ "expvar"
 	"fmt"
-	"github.com/darron/goshe/cmd"
+	"github.com/Datadog/goshe/cmd"
 	"log"
 	"log/syslog"
 	"net/http"

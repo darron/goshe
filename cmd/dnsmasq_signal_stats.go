@@ -239,7 +239,7 @@ func LoadFilesStats(content string) (string, float64) {
 // after each signalInterval - USR1 outputs logs with statistics.
 func dnsmasqSignals() {
 	for {
-		procs := GetMatches("dnsmasq", false)
+		procs := GetMatches("/usr/sbin/dnsmasq", false)
 		// If we've defined this ENV VAR - then we do NOT want to send
 		// signals. It's a way to run multiple versions at the same time.
 		if os.Getenv("GOSHE_DISABLE_DNSMASQ_SIGNALS") == "" {
@@ -260,9 +260,9 @@ func sendUSR1(procs []ProcessList) {
 
 // sendDnsmasqMemStats sends memory stats for dnsmasq if MemoryFlag
 // is true.
-func sendDnsmasqMemStats()  {
+func sendDnsmasqMemStats() {
 	for {
-		matches := GetMatches("dnsmasq", false)
+		matches := GetMatches("/usr/sbin/dnsmasq", false)
 		if matches != nil {
 			fmt.Printf("Found %d matches.\n", len(matches))
 			SendMetrics(matches)

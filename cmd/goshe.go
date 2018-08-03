@@ -13,6 +13,7 @@ import (
 // ProcessList is a simplified list of processes on a system.
 type ProcessList struct {
 	Pname string
+	Pexe  string
 	Pid   int
 	Pmem  uint64 // in bytes
 }
@@ -56,6 +57,7 @@ func ConvertProcessList(p *sigar.ProcList) *[]ProcessList {
 		state := sigar.ProcState{}
 		mem := sigar.ProcMem{}
 		time := sigar.ProcTime{}
+		exe := sigar.ProcExe{}
 		if err := state.Get(pid); err != nil {
 			continue
 		}
@@ -65,8 +67,11 @@ func ConvertProcessList(p *sigar.ProcList) *[]ProcessList {
 		if err := time.Get(pid); err != nil {
 			continue
 		}
+		if err := exe.Get(pid); err != nil {
+			continue
+		}
 		memory = mem.Resident
-		proc = ProcessList{Pname: state.Name, Pid: pid, Pmem: memory}
+		proc = ProcessList{Pname: state.Name, Pid: pid, Pmem: memory, Pexe: exe.Name}
 		List = append(List, proc)
 	}
 	return &List
@@ -76,7 +81,7 @@ func ConvertProcessList(p *sigar.ProcList) *[]ProcessList {
 func MatchProcessList(procs []ProcessList, match string, goshe bool) []ProcessList {
 	var Matches []ProcessList
 	for _, proc := range procs {
-		if proc.Pname == match || (proc.Pname == "goshe" && goshe == true) {
+		if proc.Pexe == match || (proc.Pname == "goshe" && goshe == true) {
 			Matches = append(Matches, proc)
 		}
 	}
